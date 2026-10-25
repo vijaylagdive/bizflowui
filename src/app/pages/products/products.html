@@ -1,0 +1,74 @@
+<section class="page">
+  <div class="toolbar">
+    <button type="button" class="button" (click)="openForm()" [disabled]="showForm()">Add product</button>
+  </div>
+
+  @if (showForm()) {
+    <form class="card form" [formGroup]="form" (ngSubmit)="submit()">
+      <div class="fields">
+        <label>
+          Product name
+          <input type="text" formControlName="productName" autocomplete="off" />
+        </label>
+        <label>
+          Category
+          <select formControlName="categoryId">
+            <option [ngValue]="null">
+              {{ loadingCategories() ? 'Loading categories…' : 'Select a category' }}
+            </option>
+            @for (category of categories(); track category.categoryId) {
+              <option [ngValue]="category.categoryId">{{ category.categoryName }}</option>
+            }
+          </select>
+        </label>
+      </div>
+      @if (form.touched && form.invalid) {
+        <p class="hint">Enter the product name and category.</p>
+      }
+      <div class="form__actions">
+        <button type="button" class="button button--ghost" (click)="cancel()" [disabled]="saving()">
+          Cancel
+        </button>
+        <button type="submit" class="button" [disabled]="saving()">
+          {{ saving() ? 'Saving…' : editingId() === null ? 'Save product' : 'Save changes' }}
+        </button>
+      </div>
+    </form>
+  }
+
+  @if (error()) {
+    <p class="status status--error">{{ error() }}</p>
+  }
+
+  @if (loading()) {
+    <p class="status">Loading products…</p>
+  } @else if (products().length === 0) {
+    <p class="status">No products yet.</p>
+  } @else {
+    <ul class="products">
+      @for (product of products(); track product.productId) {
+        <li class="product">
+          <div>
+            <p class="product__name">{{ product.productName }}</p>
+            <p class="product__meta">ID {{ product.productId }}</p>
+          </div>
+          <p>{{ product.categoryName }}</p>
+          <div class="row-actions">
+            @if (pendingDeleteId() === product.productId) {
+              <span class="confirm">Delete {{ product.productName }}?</span>
+              <button type="button" class="button button--danger" [disabled]="saving()" (click)="confirmDelete(product)">
+                Delete
+              </button>
+              <button type="button" class="button button--ghost" [disabled]="saving()" (click)="cancelDelete()">
+                Cancel
+              </button>
+            } @else {
+              <button type="button" class="button button--ghost" (click)="edit(product)">Edit</button>
+              <button type="button" class="button button--ghost" (click)="askDelete(product.productId)">Delete</button>
+            }
+          </div>
+        </li>
+      }
+    </ul>
+  }
+</section>

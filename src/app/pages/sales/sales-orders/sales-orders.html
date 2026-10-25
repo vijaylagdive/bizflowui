@@ -1,0 +1,77 @@
+<section class="page">
+  @if (error()) {
+    <p class="status status--error">{{ error() }}</p>
+  }
+
+  @if (loading()) {
+    <p class="status">Loading sales orders…</p>
+  } @else if (orders().length === 0) {
+    <p class="status">No sales orders yet.</p>
+  } @else {
+    <ul class="orders">
+      @for (order of orders(); track order.id) {
+        <li class="order" [class.order--open]="expandedId() === order.id">
+          <div class="order__head">
+          <button type="button" class="order__summary" (click)="toggle(order.id)">
+            <span class="invoice">
+              <span class="chevron" [class.chevron--open]="expandedId() === order.id" aria-hidden="true"></span>
+              {{ order.invoiceNumber }}
+            </span>
+            <span class="customer">{{ order.customerName }}</span>
+            <span class="date">{{ order.salesDate | date: 'mediumDate' }}</span>
+            <span class="count">{{ order.items.length }} {{ order.items.length === 1 ? 'item' : 'items' }}</span>
+            <span class="count">{{ order.cashDiscount | number: '1.2-2' }}</span>
+            <span class="total">{{ order.salesTotalAmount | number: '1.2-2' }}</span>
+          </button>
+          <div class="row-actions">
+            <a class="button button--ghost" [routerLink]="['/sales/orders', order.id, 'edit']">Edit</a>
+            @if (pendingDeleteId() === order.id) {
+              <button type="button" class="button button--danger" [disabled]="deletingId() === order.id" (click)="deleteOrder(order)">
+                {{ deletingId() === order.id ? 'Deleting…' : 'Confirm' }}
+              </button>
+              <button type="button" class="button button--ghost" [disabled]="deletingId() === order.id" (click)="cancelDelete()">
+                Cancel
+              </button>
+            } @else {
+              <button type="button" class="button button--ghost" (click)="confirmDelete(order.id)">Delete</button>
+            }
+          </div>
+          </div>
+
+          @if (expandedId() === order.id) {
+            @if (order.items.length === 0) {
+              <p class="empty-items">No line items.</p>
+            } @else {
+              <div class="items-wrap">
+                <table class="items">
+                  <thead>
+                    <tr>
+                      <th>Product</th>
+                      <th class="num">Qty</th>
+                      <th>Unit</th>
+                      <th class="num">Rate</th>
+                      <th class="num">GST %</th>
+                      <th class="num">Amount</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    @for (item of order.items; track item.id) {
+                      <tr>
+                        <td>{{ productName(item.productId) }}</td>
+                        <td class="num">{{ item.qty | number: '1.0-3' }}</td>
+                        <td>{{ item.unit }}</td>
+                        <td class="num">{{ item.rate | number: '1.2-2' }}</td>
+                        <td class="num">{{ item.gstPercent | number: '1.0-2' }}</td>
+                        <td class="num">{{ item.totalAmount | number: '1.2-2' }}</td>
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+              </div>
+            }
+          }
+        </li>
+      }
+    </ul>
+  }
+</section>

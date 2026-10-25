@@ -1,0 +1,67 @@
+<section class="page">
+  <div class="toolbar">
+    <button type="button" class="button" (click)="openForm()" [disabled]="showForm()">Add category</button>
+  </div>
+
+  @if (showForm()) {
+    <form class="card form" [formGroup]="form" (ngSubmit)="submit()">
+      <label>
+        Category name
+        <input type="text" formControlName="categoryName" autocomplete="off" />
+      </label>
+      @if (form.touched && form.invalid) {
+        <p class="hint">Enter the category name.</p>
+      }
+      <div class="form__actions">
+        <button type="button" class="button button--ghost" (click)="cancel()" [disabled]="saving()">
+          Cancel
+        </button>
+        <button type="submit" class="button" [disabled]="saving()">
+          {{ saving() ? 'Saving…' : editingId() === null ? 'Save category' : 'Save changes' }}
+        </button>
+      </div>
+    </form>
+  }
+
+  @if (error()) {
+    <p class="status status--error">{{ error() }}</p>
+  }
+
+  @if (loading()) {
+    <p class="status">Loading categories…</p>
+  } @else if (categories().length === 0) {
+    <p class="status">No categories yet.</p>
+  } @else {
+    <ul class="categories">
+      @for (category of categories(); track category.categoryId) {
+        <li class="category">
+          <div>
+            <p class="category__name">{{ category.categoryName }}</p>
+            <p class="category__meta">ID {{ category.categoryId }}</p>
+          </div>
+          <div class="row-actions">
+            @if (pendingDeleteId() === category.categoryId) {
+              <span class="confirm">Delete {{ category.categoryName }}?</span>
+              <button
+                type="button"
+                class="button button--danger"
+                [disabled]="saving()"
+                (click)="confirmDelete(category)"
+              >
+                Delete
+              </button>
+              <button type="button" class="button button--ghost" [disabled]="saving()" (click)="cancelDelete()">
+                Cancel
+              </button>
+            } @else {
+              <button type="button" class="button button--ghost" (click)="edit(category)">Edit</button>
+              <button type="button" class="button button--ghost" (click)="askDelete(category.categoryId)">
+                Delete
+              </button>
+            }
+          </div>
+        </li>
+      }
+    </ul>
+  }
+</section>

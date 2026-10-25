@@ -1,0 +1,38 @@
+<section class="page">
+  @if (loading()) {
+    <p class="status">Loading customer ledgers…</p>
+  } @else if (error()) {
+    <p class="status status--error">{{ error() }}</p>
+  } @else if (entries().length === 0) {
+    <p class="status">No customer ledger entries yet.</p>
+  } @else {
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Customer</th>
+            <th>Type</th>
+            <th>Sale order</th>
+            <th class="num">Debit</th>
+            <th class="num">Credit</th>
+            <th class="num">Balance</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (entry of entries(); track entry.id) {
+            <tr>
+              <td>{{ entry.date | date: 'mediumDate' }}</td>
+              <td>{{ entry.customerName }}</td>
+              <td class="type">{{ entry.type }}</td>
+              <td>{{ entry.saleOrderNo }}</td>
+              <td class="num">{{ entry.debit | number: '1.2-2' }}</td>
+              <td class="num">{{ entry.credit | number: '1.2-2' }}</td>
+              <td class="num">{{ entry.balance | number: '1.2-2' }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</section>

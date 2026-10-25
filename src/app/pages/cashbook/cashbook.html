@@ -1,0 +1,120 @@
+<section class="page">
+  <div class="toolbar">
+    <button type="button" class="button" (click)="openForm()" [disabled]="showForm()">Add transaction</button>
+  </div>
+
+  @if (showForm()) {
+    <form class="card form" [formGroup]="form" (ngSubmit)="submit()">
+      <div class="fields">
+        <label>
+          Date
+          <input type="date" formControlName="date" />
+        </label>
+        <label>
+          Transaction type
+          <select formControlName="transactionType">
+            <option value="receipt">Receipt</option>
+            <option value="payment">Payment</option>
+          </select>
+        </label>
+        <label>
+          Account
+          <select formControlName="accountId">
+            <option [ngValue]="null">
+              {{ loadingAccounts() ? 'Loading accounts…' : 'Select an account' }}
+            </option>
+            @for (account of accounts(); track account.accountId) {
+              <option [ngValue]="account.accountId">{{ account.accountName }}</option>
+            }
+          </select>
+        </label>
+        <label>
+          From / to
+          <select formControlName="fromTo">
+            <option [ngValue]="null">
+              {{ form.controls.transactionType.value === 'payment' ? 'Select a vendor' : 'Select a customer' }}
+            </option>
+            @for (party of partyOptions(); track party.value) {
+              <option [value]="party.value">{{ party.label }}</option>
+            }
+          </select>
+        </label>
+        <label>
+          Amount
+          <input type="number" formControlName="amount" min="0.01" step="0.01" />
+        </label>
+        <label class="span">
+          Remark
+          <input type="text" formControlName="remark" autocomplete="off" />
+        </label>
+      </div>
+      @if (form.touched && form.invalid) {
+        <p class="hint">Enter the date, account, from/to, a remark, and an amount greater than zero.</p>
+      }
+      <div class="form__actions">
+        <button type="button" class="button button--ghost" (click)="cancel()" [disabled]="saving()">
+          Cancel
+        </button>
+        <button type="submit" class="button" [disabled]="saving()">
+          {{ saving() ? 'Saving…' : editingId() === null ? 'Save transaction' : 'Save changes' }}
+        </button>
+      </div>
+    </form>
+  }
+
+  @if (error()) {
+    <p class="status status--error">{{ error() }}</p>
+  }
+
+  @if (loading()) {
+    <p class="status">Loading transactions…</p>
+  } @else if (entries().length === 0) {
+    <p class="status">No transactions yet.</p>
+  } @else {
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Type</th>
+            <th>Account</th>
+            <th>From / to</th>
+            <th class="num">Amount</th>
+            <th class="num">Balance</th>
+            <th>Remark</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (entry of entries(); track entry.id) {
+            <tr>
+              <td>{{ entry.date | date: 'mediumDate' }}</td>
+              <td class="type">{{ entry.transactionType }}</td>
+              <td>{{ entry.account }}</td>
+              <td>{{ entry.fromTo }}</td>
+              <td class="num">{{ entry.amount | number: '1.2-2' }}</td>
+              <td class="num">{{ entry.balance | number: '1.2-2' }}</td>
+              <td>{{ entry.remark }}</td>
+              <td>
+                <div class="row-actions">
+                  @if (pendingDeleteId() === entry.id) {
+                    <span class="confirm">Delete this transaction?</span>
+                    <button type="button" class="button button--danger" [disabled]="saving()" (click)="confirmDelete(entry)">
+                      Delete
+                    </button>
+                    <button type="button" class="button button--ghost" [disabled]="saving()" (click)="cancelDelete()">
+                      Cancel
+                    </button>
+                  } @else {
+                    <button type="button" class="button button--ghost" (click)="edit(entry)">Edit</button>
+                    <button type="button" class="button button--ghost" (click)="askDelete(entry.id)">Delete</button>
+                  }
+                </div>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</section>

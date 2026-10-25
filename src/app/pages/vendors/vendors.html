@@ -1,0 +1,73 @@
+<section class="page">
+  <div class="toolbar">
+    <button type="button" class="button" (click)="openForm()" [disabled]="showForm()">Add vendor</button>
+  </div>
+
+  @if (showForm()) {
+    <form class="card form" [formGroup]="form" (ngSubmit)="submit()">
+      <div class="fields">
+        <label>
+          Name
+          <input type="text" formControlName="name" autocomplete="off" />
+        </label>
+        <label>
+          Contact number
+          <input type="text" formControlName="contactNumber" autocomplete="off" />
+        </label>
+        <label class="span">
+          Address
+          <input type="text" formControlName="address" autocomplete="off" />
+        </label>
+      </div>
+      @if (form.touched && form.invalid) {
+        <p class="hint">Enter the name, contact number, and address.</p>
+      }
+      <div class="form__actions">
+        <button type="button" class="button button--ghost" (click)="cancel()" [disabled]="saving()">
+          Cancel
+        </button>
+        <button type="submit" class="button" [disabled]="saving()">
+          {{ saving() ? 'Saving…' : editingId() === null ? 'Save vendor' : 'Save changes' }}
+        </button>
+      </div>
+    </form>
+  }
+
+  @if (error()) {
+    <p class="status status--error">{{ error() }}</p>
+  }
+
+  @if (loading()) {
+    <p class="status">Loading vendors…</p>
+  } @else if (vendors().length === 0) {
+    <p class="status">No vendors yet.</p>
+  } @else {
+    <ul class="vendors">
+      @for (vendor of vendors(); track vendor.vendorId) {
+        <li class="vendor">
+          <div>
+            <p class="vendor__name">{{ vendor.name }}</p>
+            <p class="vendor__meta">ID {{ vendor.vendorId }}</p>
+          </div>
+          <p>{{ vendor.contactNumber }}</p>
+          <p>{{ vendor.address }}</p>
+          <p class="balance">{{ vendor.currentBalance | number: '1.2-2' }}</p>
+          <div class="row-actions">
+            @if (pendingDeleteId() === vendor.vendorId) {
+              <span class="confirm">Delete {{ vendor.name }}?</span>
+              <button type="button" class="button button--danger" [disabled]="saving()" (click)="confirmDelete(vendor)">
+                Delete
+              </button>
+              <button type="button" class="button button--ghost" [disabled]="saving()" (click)="cancelDelete()">
+                Cancel
+              </button>
+            } @else {
+              <button type="button" class="button button--ghost" (click)="edit(vendor)">Edit</button>
+              <button type="button" class="button button--ghost" (click)="askDelete(vendor.vendorId)">Delete</button>
+            }
+          </div>
+        </li>
+      }
+    </ul>
+  }
+</section>

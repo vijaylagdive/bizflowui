@@ -1,0 +1,115 @@
+<section class="page">
+  @if (loadingOrder()) {
+    <p class="status">Loading purchase order…</p>
+  } @else {
+  <form class="form" [formGroup]="form" (ngSubmit)="submit()">
+    <div class="card">
+      <div class="fields">
+        <label>
+          Purchase date
+          <input type="date" formControlName="purchaseDate" />
+        </label>
+        <label>
+          Invoice number
+          <input type="text" formControlName="invoiceNumber" autocomplete="off" />
+        </label>
+        <label>
+          Vendor
+          <select formControlName="vendorId">
+            <option [ngValue]="null">
+              {{ loadingVendors() ? 'Loading vendors…' : 'Select a vendor' }}
+            </option>
+            @for (vendor of vendors(); track vendor.vendorId) {
+              <option [ngValue]="vendor.vendorId">{{ vendor.name }}</option>
+            }
+          </select>
+        </label>
+        <label>
+          Cash discount
+          <input type="number" formControlName="cashDiscount" min="0" step="0.01" />
+        </label>
+      </div>
+      @if (form.touched && form.invalid && items.valid) {
+        <p class="hint">Enter the purchase date, invoice number, and vendor.</p>
+      }
+    </div>
+
+    <div class="card" formArrayName="items">
+      <div class="card__head">
+        <h2>Items</h2>
+        <button type="button" class="button button--ghost" (click)="addItem()" [disabled]="!canAddItem()">
+          Add item
+        </button>
+      </div>
+
+      @for (item of items.controls; track $index) {
+        <div class="item" [formGroupName]="$index">
+          <label>
+            Product
+            <select formControlName="productId">
+              <option [ngValue]="null">
+                {{ loadingProducts() ? 'Loading products…' : 'Select a product' }}
+              </option>
+              @for (product of products(); track product.productId) {
+                <option [ngValue]="product.productId">{{ product.productName }}</option>
+              }
+              @if (itemProductId(item) !== null && !knownProduct(itemProductId(item))) {
+                <option [ngValue]="itemProductId(item)">Product {{ itemProductId(item) }}</option>
+              }
+            </select>
+          </label>
+          <label>
+            Qty
+            <input type="number" formControlName="qty" min="0.001" step="0.001" />
+          </label>
+          <label>
+            Unit
+            <select formControlName="unit">
+              <option [ngValue]="null">
+                {{ loadingUnits() ? 'Loading units…' : 'Select a unit' }}
+              </option>
+              @for (unit of units(); track unit.unitId) {
+                <option [ngValue]="unit.unitName">{{ unit.unitName }}</option>
+              }
+              @if (itemUnit(item) && !knownUnit(itemUnit(item))) {
+                <option [ngValue]="itemUnit(item)">{{ itemUnit(item) }}</option>
+              }
+            </select>
+          </label>
+          <label>
+            Rate
+            <input type="number" formControlName="rate" min="0" step="0.01" />
+          </label>
+          <label>
+            GST %
+            <input type="number" formControlName="gst" min="0" step="0.01" />
+          </label>
+          <div class="amount">
+            <span>Amount</span>
+            <strong>{{ lineAmount($index) | number: '1.2-2' }}</strong>
+          </div>
+          <button
+            type="button"
+            class="button button--ghost"
+            [disabled]="items.length === 1"
+            (click)="removeItem($index)"
+          >
+            Remove
+          </button>
+        </div>
+      }
+    </div>
+
+    <div class="actions">
+      <p class="grand-total">Total {{ orderTotal() | number: '1.2-2' }}</p>
+      <button type="submit" class="button" [disabled]="saving()">
+        {{ saving() ? 'Saving…' : editingId() === null ? 'Create purchase order' : 'Save changes' }}
+      </button>
+    </div>
+
+    @if (error()) {
+      <p class="status status--error">{{ error() }}</p>
+    }
+  </form>
+  }
+</section>

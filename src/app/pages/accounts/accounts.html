@@ -1,0 +1,78 @@
+<section class="page">
+  <div class="toolbar">
+    <button type="button" class="button" (click)="openForm()" [disabled]="showForm()">Add account</button>
+  </div>
+
+  @if (showForm()) {
+    <form class="card form" [formGroup]="form" (ngSubmit)="submit()">
+      <div class="fields">
+        <label>
+          Name
+          <input type="text" formControlName="name" autocomplete="off" />
+        </label>
+        <label>
+          Account type
+          <select formControlName="accountType">
+            <option value="" disabled>Select a type</option>
+            <option value="saving">Saving</option>
+            <option value="current">Current</option>
+            @if (
+              form.controls.accountType.value &&
+              form.controls.accountType.value !== 'saving' &&
+              form.controls.accountType.value !== 'current'
+            ) {
+              <option [value]="form.controls.accountType.value">{{ form.controls.accountType.value }}</option>
+            }
+          </select>
+        </label>
+      </div>
+      @if (form.touched && form.invalid) {
+        <p class="hint">Enter the account name and type.</p>
+      }
+      <div class="form__actions">
+        <button type="button" class="button button--ghost" (click)="cancel()" [disabled]="saving()">
+          Cancel
+        </button>
+        <button type="submit" class="button" [disabled]="saving()">
+          {{ saving() ? 'Saving…' : editingId() === null ? 'Save account' : 'Save changes' }}
+        </button>
+      </div>
+    </form>
+  }
+
+  @if (error()) {
+    <p class="status status--error">{{ error() }}</p>
+  }
+
+  @if (loading()) {
+    <p class="status">Loading accounts…</p>
+  } @else if (accounts().length === 0) {
+    <p class="status">No accounts yet.</p>
+  } @else {
+    <ul class="accounts">
+      @for (account of accounts(); track account.accountId) {
+        <li class="account">
+          <div>
+            <p class="account__name">{{ account.accountName }}</p>
+            <p class="account__meta">ID {{ account.accountId }}</p>
+          </div>
+          <p class="type">{{ account.accountType }}</p>
+          <div class="row-actions">
+            @if (pendingDeleteId() === account.accountId) {
+              <span class="confirm">Delete {{ account.accountName }}?</span>
+              <button type="button" class="button button--danger" [disabled]="saving()" (click)="confirmDelete(account)">
+                Delete
+              </button>
+              <button type="button" class="button button--ghost" [disabled]="saving()" (click)="cancelDelete()">
+                Cancel
+              </button>
+            } @else {
+              <button type="button" class="button button--ghost" (click)="edit(account)">Edit</button>
+              <button type="button" class="button button--ghost" (click)="askDelete(account.accountId)">Delete</button>
+            }
+          </div>
+        </li>
+      }
+    </ul>
+  }
+</section>

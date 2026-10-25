@@ -1,0 +1,32 @@
+<section class="page">
+  @if (loading()) {
+    <p class="status">Loading inventory…</p>
+  } @else if (error()) {
+    <p class="status status--error">{{ error() }}</p>
+  } @else if (items().length === 0) {
+    <p class="status">No stock items yet.</p>
+  } @else {
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Product</th>
+            <th>Unit</th>
+            <th class="num">Current stock</th>
+            <th class="num">Stock value</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (item of items(); track item.id) {
+            <tr>
+              <td>{{ item.productName }}</td>
+              <td>{{ item.unit }}</td>
+              <td class="num">{{ item.currentStock | number: '1.0-3' }}</td>
+              <td class="num">{{ item.stockValue | number: '1.2-2' }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</section>
