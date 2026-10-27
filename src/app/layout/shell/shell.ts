@@ -1,4 +1,5 @@
 import { Component, inject, signal } from '@angular/core';
+import { AuthService } from '../../auth/auth.service';
 import { NgTemplateOutlet } from '@angular/common';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { NavigationEnd, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
@@ -25,10 +26,24 @@ interface NavItem {
 })
 export class Shell {
   private readonly router = inject(Router);
+  private readonly auth = inject(AuthService);
 
   protected readonly navOpen = signal(false);
+  protected readonly loggingOut = signal(false);
   protected readonly openGroups = signal<Record<string, boolean>>({});
   protected readonly pageTitle = signal('Dashboard');
+  protected readonly settingsCurrent = signal(false);
+
+  private readonly masterPaths = ['/products', '/categories', '/units', '/vendors', '/customers', '/accounts'];
+  private readonly pageTitles: Record<string, string> = {
+    '/settings': 'Settings',
+    '/products': 'Products',
+    '/categories': 'Categories',
+    '/units': 'Units',
+    '/vendors': 'Vendors',
+    '/customers': 'Customers',
+    '/accounts': 'Accounts',
+  };
 
   protected readonly nav: NavItem[] = [
     { label: 'Dashboard', icon: 'dashboard', path: '/dashboard' },
@@ -48,19 +63,6 @@ export class Shell {
       children: [
         { label: 'Sales Orders', path: '/sales/orders' },
         { label: 'Create Sales Order', path: '/sales/create' },
-      ],
-    },
-    {
-      label: 'Masters',
-      icon: 'masters',
-      group: 'masters',
-      children: [
-        { label: 'Products', path: '/products' },
-        { label: 'Categories', path: '/categories' },
-        { label: 'Units', path: '/units' },
-        { label: 'Vendors', path: '/vendors' },
-        { label: 'Customers', path: '/customers' },
-        { label: 'Accounts', path: '/accounts' },
       ],
     },
     { label: 'Inventory', icon: 'inventory', path: '/inventory' },
@@ -87,6 +89,21 @@ export class Shell {
         this.syncFromUrl(event.urlAfterRedirects);
         this.navOpen.set(false);
       });
+  }
+
+  protected logout(): void {
+    this.loggingOut.set(true);
+    this.auth.logout().subscribe({
+      next: () => {
+        this.loggingOut.set(false);
+        void this.router.navigateByUrl('/login');
+      },
+      error: () => {
+        this.auth.clear();
+        this.loggingOut.set(false);
+        void this.router.navigateByUrl('/login');
+      },
+    });
   }
 
   protected toggleNav(): void {
@@ -119,13 +136,9 @@ export class Shell {
       ...groups,
       purchase: groups['purchase'] || path.startsWith('/purchase'),
       sales: groups['sales'] || path.startsWith('/sales'),
-      masters:
-        groups['masters'] ||
-        ['/products', '/categories', '/units', '/vendors', '/customers', '/accounts'].some((item) =>
-          path.startsWith(item),
-        ),
       ledgers: groups['ledgers'] || path.startsWith('/ledgers'),
     }));
+    this.settingsCurrent.set(path === '/settings' || this.masterPaths.some((item) => path.startsWith(item)));
   }
 
   private titleFor(path: string): string {
@@ -141,6 +154,12 @@ export class Shell {
     if (/^\/sales\/orders\/\d+\/edit$/.test(path)) {
       return 'Edit Sales Order';
     }
-    return 'Bizflow';
+    if (/^\/ledgers\/vendors\/\d+$/.test(path)) {
+      return 'Vendor Ledger';
+    }
+    if (/^\/ledgers\/customers\/\d+$/.test(path)) {
+      return 'Customer Ledger';
+    }
+    return this.pageTitles[path] ?? 'Bizflow';
   }
 }

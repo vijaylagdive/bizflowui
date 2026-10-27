@@ -45,17 +45,47 @@
 }
 
 .brand__name {
+  flex: 1;
+  min-width: 0;
   font-size: 1.05rem;
   font-weight: 650;
   letter-spacing: 0.01em;
 }
 
+.logout {
+  height: 1.75rem;
+  padding: 0 0.55rem;
+  border: 1px solid rgb(255 255 255 / 22%);
+  border-radius: 0.4rem;
+  background: transparent;
+  color: #e2e8f0;
+  font: inherit;
+  font-size: 0.75rem;
+  font-weight: 650;
+  cursor: pointer;
+}
+
+.logout:hover:not(:disabled) {
+  background: rgb(255 255 255 / 8%);
+}
+
+.logout:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
 .nav {
   display: flex;
+  flex: 1;
   flex-direction: column;
   gap: 0.25rem;
   padding: 0.85rem 0.75rem;
   overflow: auto;
+}
+
+.settings {
+  padding: 0.75rem;
+  border-top: 1px solid rgb(255 255 255 / 8%);
 }
 
 .nav-link,

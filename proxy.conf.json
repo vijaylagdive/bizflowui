@@ -1,11 +1,11 @@
 {
   "/purchase-orders": {
-    "target": "http://localhost:8080",
+    "target": "https://bizflow-y57h.onrender.com",
     "secure": false,
     "changeOrigin": true
   },
   "/api": {
-    "target": "http://localhost:8080",
+    "target": "https://bizflow-y57h.onrender.com",
     "secure": false,
     "changeOrigin": true,
     "pathRewrite": {

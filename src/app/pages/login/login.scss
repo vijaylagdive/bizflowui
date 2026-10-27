@@ -1,0 +1,92 @@
+.login {
+  display: grid;
+  min-height: 100%;
+  place-items: center;
+  padding: 1.5rem;
+  background: #f1f5f9;
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+  width: min(100%, 22rem);
+  padding: 1.5rem;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.9rem;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+}
+
+.brand__mark {
+  display: grid;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 0.5rem;
+  background: #2563eb;
+  color: #fff;
+  font-weight: 700;
+}
+
+.brand__name {
+  font-weight: 700;
+}
+
+h1 {
+  margin: 0;
+  font-size: 1.35rem;
+}
+
+label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  font-size: 0.8rem;
+  font-weight: 650;
+  color: #475569;
+}
+
+input {
+  width: 100%;
+  height: 2.5rem;
+  padding: 0 0.7rem;
+  border: 1px solid #cbd5e1;
+  border-radius: 0.5rem;
+  color: #0f172a;
+  font: inherit;
+  font-weight: 450;
+}
+
+input:focus {
+  outline: 2px solid #bfdbfe;
+  border-color: #2563eb;
+}
+
+.hint {
+  margin: 0;
+  color: #b91c1c;
+  font-size: 0.85rem;
+}
+
+.button {
+  height: 2.5rem;
+  margin-top: 0.25rem;
+  border: 0;
+  border-radius: 0.5rem;
+  background: #1d4ed8;
+  color: #fff;
+  font: inherit;
+  font-weight: 650;
+  cursor: pointer;
+}
+
+.button:disabled {
+  opacity: 0.55;
+  cursor: default;
+}

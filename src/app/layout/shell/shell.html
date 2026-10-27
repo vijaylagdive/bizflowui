@@ -3,6 +3,9 @@
     <div class="brand">
       <span class="brand__mark" aria-hidden="true">B</span>
       <span class="brand__name">Bizflow</span>
+      <button type="button" class="logout" (click)="logout()" [disabled]="loggingOut()">
+        {{ loggingOut() ? '…' : 'Logout' }}
+      </button>
     </div>
 
     <nav class="nav">
@@ -51,6 +54,14 @@
         }
       }
     </nav>
+    <div class="settings">
+      <a class="nav-link" routerLink="/settings" [class.is-active]="settingsCurrent()">
+        <span class="nav-link__icon" aria-hidden="true">
+          <ng-container [ngTemplateOutlet]="icon" [ngTemplateOutletContext]="{ name: 'settings' }" />
+        </span>
+        <span class="nav-link__label">Settings</span>
+      </a>
+    </div>
   </aside>
 
   @if (navOpen()) {
@@ -94,6 +105,12 @@
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
         <path d="M7 3h10v18l-2.2-1.4L12.5 21 10.2 19.6 8 21 7 20.2z" />
         <path d="M9 8h6M9 12h6" />
+      </svg>
+    }
+    @case ('settings') {
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+        <circle cx="12" cy="12" r="3" />
+        <path d="M12 3.5v2.2M12 18.3v2.2M3.5 12h2.2M18.3 12h2.2M6 6l1.6 1.6M16.4 16.4 18 18M18 6l-1.6 1.6M7.6 16.4 6 18" />
       </svg>
     }
     @case ('masters') {

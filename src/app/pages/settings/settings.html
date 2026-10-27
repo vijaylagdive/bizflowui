@@ -1,0 +1,12 @@
+<section class="page">
+  <ul class="items">
+    @for (item of items; track item.path) {
+      <li>
+        <a [routerLink]="item.path">
+          <span class="label">{{ item.label }}</span>
+          <span class="detail">{{ item.detail }}</span>
+        </a>
+      </li>
+    }
+  </ul>
+</section>

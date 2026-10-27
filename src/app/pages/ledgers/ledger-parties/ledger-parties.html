@@ -1,0 +1,21 @@
+<section class="page">
+  @if (loading()) {
+    <p class="status">Loading {{ party() === 'vendor' ? 'vendors' : 'customers' }}…</p>
+  } @else if (error()) {
+    <p class="status status--error">{{ error() }}</p>
+  } @else if (parties().length === 0) {
+    <p class="status">No {{ party() === 'vendor' ? 'vendors' : 'customers' }} yet.</p>
+  } @else {
+    <ul class="parties">
+      @for (row of parties(); track row.id) {
+        <li class="party">
+          <p class="party__name">{{ row.name }}</p>
+          <p class="balance">{{ row.currentBalance | number: '1.2-2' }}</p>
+          <a class="button" [routerLink]="['/ledgers', party() === 'vendor' ? 'vendors' : 'customers', row.id]">
+            Show Details
+          </a>
+        </li>
+      }
+    </ul>
+  }
+</section>

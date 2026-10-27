@@ -1,0 +1,26 @@
+<section class="login">
+  <form class="card" [formGroup]="form" (ngSubmit)="submit()">
+    <div class="brand">
+      <span class="brand__mark" aria-hidden="true">B</span>
+      <span class="brand__name">Bizflow</span>
+    </div>
+    <h1>Sign in</h1>
+    <label>
+      Username
+      <input type="text" formControlName="username" autocomplete="username" />
+    </label>
+    <label>
+      Password
+      <input type="password" formControlName="password" autocomplete="current-password" />
+    </label>
+    @if (form.touched && form.invalid) {
+      <p class="hint">Enter your username and password.</p>
+    }
+    @if (error()) {
+      <p class="hint">{{ error() }}</p>
+    }
+    <button type="submit" class="button" [disabled]="submitting()">
+      {{ submitting() ? 'Signing in…' : 'Sign in' }}
+    </button>
+  </form>
+</section>

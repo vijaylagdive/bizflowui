@@ -1,10 +1,17 @@
 import { Routes } from '@angular/router';
+import { authGuard } from './auth/auth.guard';
 import { Shell } from './layout/shell/shell';
 
 export const routes: Routes = [
   {
+    path: 'login',
+    title: 'Sign in',
+    loadComponent: () => import('./pages/login/login').then((m) => m.Login),
+  },
+  {
     path: '',
     component: Shell,
+    canActivate: [authGuard],
     children: [
       { path: '', pathMatch: 'full', redirectTo: 'dashboard' },
       {
@@ -53,6 +60,11 @@ export const routes: Routes = [
           import('./pages/sales/create-sales-order/create-sales-order').then((m) => m.CreateSalesOrder),
       },
       {
+        path: 'settings',
+        title: 'Settings',
+        loadComponent: () => import('./pages/settings/settings').then((m) => m.Settings),
+      },
+      {
         path: 'products',
         title: 'Products',
         loadComponent: () => import('./pages/products/products').then((m) => m.Products),
@@ -96,14 +108,30 @@ export const routes: Routes = [
       {
         path: 'ledgers/vendors',
         title: 'Vendor Ledger',
+        data: { party: 'vendor' },
         loadComponent: () =>
-          import('./pages/ledgers/vendor-ledger/vendor-ledger').then((m) => m.VendorLedger),
+          import('./pages/ledgers/ledger-parties/ledger-parties').then((m) => m.LedgerParties),
+      },
+      {
+        path: 'ledgers/vendors/:partyId',
+        title: 'Vendor Ledger',
+        data: { party: 'vendor' },
+        loadComponent: () =>
+          import('./pages/ledgers/ledger-detail/ledger-detail').then((m) => m.LedgerDetail),
       },
       {
         path: 'ledgers/customers',
         title: 'Customer Ledger',
+        data: { party: 'customer' },
         loadComponent: () =>
-          import('./pages/ledgers/customer-ledger/customer-ledger').then((m) => m.CustomerLedger),
+          import('./pages/ledgers/ledger-parties/ledger-parties').then((m) => m.LedgerParties),
+      },
+      {
+        path: 'ledgers/customers/:partyId',
+        title: 'Customer Ledger',
+        data: { party: 'customer' },
+        loadComponent: () =>
+          import('./pages/ledgers/ledger-detail/ledger-detail').then((m) => m.LedgerDetail),
       },
     ],
   },
