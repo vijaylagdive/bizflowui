@@ -38,8 +38,12 @@ export class Login {
         password: value.password,
       })
       .subscribe({
-        next: () => {
+        next: (user) => {
           this.submitting.set(false);
+          if (!user?.username) {
+            this.error.set('Could not sign in.');
+            return;
+          }
           void this.router.navigateByUrl('/dashboard');
         },
         error: (error: HttpErrorResponse) => {
