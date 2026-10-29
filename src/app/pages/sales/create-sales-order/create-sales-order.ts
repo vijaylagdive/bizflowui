@@ -140,8 +140,8 @@ export class CreateSalesOrder implements OnInit {
   }
 
   protected orderTotal(): number {
-    const lines = this.items.controls.reduce((sum, _, index) => sum + this.lineAmount(index), 0);
-    return lines - Number(this.form.controls.cashDiscount.value ?? 0);
+    let x =       this.items.controls.reduce((sum, _, index) => sum + this.lineAmount(index), 0);
+    return x - Number(this.form.get('cashDiscount')?.value ?? 0);
   }
 
   protected itemProductId(item: AbstractControl): number | null {
@@ -320,6 +320,7 @@ export class CreateSalesOrder implements OnInit {
       customerId: Number(value.customerId),
       customerName: customer?.name ?? '',
       cashDiscount: Number(value.cashDiscount),
+      salesTotalAmount: this.orderTotal(),
       items: value.items.map((item) => ({
         productId: Number(item.productId),
         qty: Number(item.qty),

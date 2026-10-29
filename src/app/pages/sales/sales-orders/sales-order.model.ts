@@ -12,6 +12,7 @@ export interface CreateSalesOrderRequest {
   customerId: number;
   customerName: string;
   cashDiscount: number;
+  salesTotalAmount: number;
   items: CreateSalesOrderItem[];
 }
 

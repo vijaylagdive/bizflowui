@@ -16,7 +16,6 @@
             <tr>
               <th>Date</th>
               <th>Type</th>
-              <th>{{ party() === 'vendor' ? 'Purchase order' : 'Sale order' }}</th>
               <th class="num">Debit</th>
               <th class="num">Credit</th>
               <th class="num">Balance</th>
@@ -27,9 +26,8 @@
               <tr>
                 <td>{{ line.date | date: 'mediumDate' }}</td>
                 <td class="type">{{ line.type }}</td>
-                <td>{{ line.reference }}</td>
-                <td class="num">@if (showDebit(line)) { {{ line.debit | number: '1.2-2' }} }</td>
-                <td class="num">@if (showCredit(line)) { {{ line.credit | number: '1.2-2' }} }</td>
+                <td class="num">@if (showDebit(line) && line.debit !== 0) { {{ line.debit | number: '1.2-2' }} }</td>
+                <td class="num">@if (showCredit(line) && line.credit !== 0) { {{ line.credit | number: '1.2-2' }} }</td>
                 <td class="num">{{ line.balance | number: '1.2-2' }}</td>
               </tr>
             }
