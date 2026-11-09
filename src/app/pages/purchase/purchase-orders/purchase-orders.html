@@ -1,4 +1,16 @@
 <section class="page">
+  <form class="filters" [formGroup]="filters" (ngSubmit)="applyFilters()">
+    <label>
+      From
+      <input type="date" formControlName="fromDate" />
+    </label>
+    <label>
+      To
+      <input type="date" formControlName="toDate" />
+    </label>
+    <button type="submit" class="button" [disabled]="loading()">Apply</button>
+  </form>
+
   @if (error()) {
     <p class="status status--error">{{ error() }}</p>
   }
@@ -6,7 +18,7 @@
   @if (loading()) {
     <p class="status">Loading purchase orders…</p>
   } @else if (orders().length === 0) {
-    <p class="status">No purchase orders yet.</p>
+    <p class="status">No purchase orders for these dates.</p>
   } @else {
     <ul class="orders">
       @for (order of orders(); track order.id) {
@@ -20,7 +32,6 @@
             <span class="vendor">{{ order.vendorName }}</span>
             <span class="date">{{ order.purchaseDate | date: 'mediumDate' }}</span>
             <span class="count">{{ order.items.length }} {{ order.items.length === 1 ? 'item' : 'items' }}</span>
-            <span class="count">{{ order.cashDiscount | number: '1.2-2' }}</span>
             <span class="total">{{ order.purchaseTotalAmount | number: '1.2-2' }}</span>
           </button>
           <div class="row-actions">
@@ -36,6 +47,21 @@
               <button type="button" class="button button--ghost" (click)="confirmDelete(order.id)">Delete</button>
             }
           </div>
+          </div>
+
+          <div class="order__details">
+            <span class="metric">
+              <span class="metric__label">CGST</span>
+              <span class="metric__value">{{ (order.cgst ?? 0) | number: '1.2-2' }}</span>
+            </span>
+            <span class="metric">
+              <span class="metric__label">SGST</span>
+              <span class="metric__value">{{ (order.sgst ?? 0) | number: '1.2-2' }}</span>
+            </span>
+            <span class="metric">
+              <span class="metric__label">Discount</span>
+              <span class="metric__value">{{ order.cashDiscount | number: '1.2-2' }}</span>
+            </span>
           </div>
 
           @if (expandedId() === order.id) {
@@ -70,6 +96,26 @@
           }
         </li>
       }
-    </ul>
+      </ul>
+  }
+
+  @if (!loading()) {
+    <div class="pager">
+      <p>{{ resultSummary() }}</p>
+      <label>
+        <select [value]="pageSize()" (change)="changePageSize($any($event.target).value)">
+          <option value="10">10</option>
+          <option value="20">20</option>
+          <option value="50">50</option>
+        </select>
+      </label>
+      <button type="button" class="button button--ghost" (click)="previousPage()" [disabled]="page() === 0">
+        Previous
+      </button>
+      <span>Page {{ totalPages() === 0 ? 1 : page() + 1 }} of {{ totalPages() === 0 ? 1 : totalPages() }}</span>
+      <button type="button" class="button button--ghost" (click)="nextPage()" [disabled]="page() + 1 >= totalPages()">
+        Next
+      </button>
+    </div>
   }
 </section>

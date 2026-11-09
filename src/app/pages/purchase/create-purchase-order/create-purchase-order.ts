@@ -42,7 +42,7 @@ export class CreatePurchaseOrder implements OnInit {
     purchaseDate: [this.today(), Validators.required],
     invoiceNumber: ['', Validators.required],
     vendorId: [null as number | null, Validators.required],
-    cashDiscount: [0, Validators.required],
+    orderDiscount: [0, [Validators.required, Validators.min(0)]],
     items: this.formBuilder.array([this.createItem()]),
   });
 
@@ -118,15 +118,37 @@ export class CreatePurchaseOrder implements OnInit {
   }
 
   protected lineAmount(index: number): number {
-    const item = this.items.at(index).getRawValue();
-    const base = Number(item.qty ?? 0) * Number(item.rate ?? 0);
-    const gstPercent = Number(item.gst ?? 0);
-    return base + base * (gstPercent / 100);
+    return this.lineTax(index).taxable;
   }
 
-  protected orderTotal(): number {
-    let x = this.items.controls.reduce((sum, _, index) => sum + this.lineAmount(index), 0);
-    return x - Number(this.form.get('cashDiscount')?.value ?? 0);
+  protected subtotal(): number {
+    return this.roundMoney(
+      this.items.controls.reduce((sum, _, index) => sum + this.lineTax(index).taxable, 0),
+    );
+  }
+
+  protected cgstTotal(): number {
+    return this.roundMoney(
+      this.items.controls.reduce((sum, _, index) => sum + this.lineTax(index).cgst, 0),
+    );
+  }
+
+  protected sgstTotal(): number {
+    return this.roundMoney(
+      this.items.controls.reduce((sum, _, index) => sum + this.lineTax(index).sgst, 0),
+    );
+  }
+
+  protected roundOff(): number {
+    return this.roundMoney(this.roundedTotal() - this.grossBeforeRound());
+  }
+
+  protected roundedTotal(): number {
+    return Math.round(this.grossBeforeRound());
+  }
+
+  protected amountPayable(): number {
+    return this.roundMoney(this.roundedTotal() - this.orderDiscount());
   }
 
   protected itemProductId(item: AbstractControl): number | null {
@@ -183,6 +205,7 @@ export class CreatePurchaseOrder implements OnInit {
       purchaseDate: order.purchaseDate,
       invoiceNumber: order.invoiceNumber,
       vendorId: order.vendorId,
+      orderDiscount: order.cashDiscount ?? 0,
     });
     this.items.clear();
     for (const item of order.items) {
@@ -192,7 +215,7 @@ export class CreatePurchaseOrder implements OnInit {
         qty: item.qty,
         unit: item.unit,
         rate: item.rate,
-        gst: this.gstPercent(item),
+        discount: item.discount ?? 0,
       });
       this.items.push(group);
     }
@@ -207,16 +230,38 @@ export class CreatePurchaseOrder implements OnInit {
       qty: [null as number | null, [Validators.required, Validators.min(0.001)]],
       unit: [null as string | null, Validators.required],
       rate: [null as number | null, [Validators.required, Validators.min(0)]],
-      gst: [null as number | null, [Validators.required, Validators.min(0)]],
+      discount: [0, [Validators.required, Validators.min(0)]],
     });
   }
 
-  private gstPercent(item: PurchaseOrder['items'][number]): number {
-    const base = Number(item.qty) * Number(item.rate);
-    if (!base) {
+  private lineTax(index: number): { taxable: number; cgst: number; sgst: number } {
+    const item = this.items.at(index).getRawValue();
+    const taxable = this.roundMoney(
+      (Number(item.rate ?? 0) - Number(item.discount ?? 0)) * Number(item.qty ?? 0),
+    );
+    const gst = this.roundMoney((taxable * this.gstPercentFor(item.productId)) / 100);
+    const cgst = this.roundMoney(gst / 2);
+    return { taxable, cgst, sgst: this.roundMoney(gst - cgst) };
+  }
+
+  private gstPercentFor(productId: number | null): number {
+    if (productId === null) {
       return 0;
     }
-    return Math.round((item.totalAmount / base - 1) * 10000) / 100;
+    const product = this.products().find((entry) => entry.productId === Number(productId));
+    return Number(product?.gstPercent ?? 0);
+  }
+
+  private grossBeforeRound(): number {
+    return this.roundMoney(this.subtotal() + this.cgstTotal() + this.sgstTotal());
+  }
+
+  private orderDiscount(): number {
+    return Number(this.form.get('orderDiscount')?.value ?? 0);
+  }
+
+  private roundMoney(value: number): number {
+    return Math.round((value + Number.EPSILON) * 100) / 100;
   }
 
   private requestBody(): CreatePurchaseOrderRequest {
@@ -227,21 +272,20 @@ export class CreatePurchaseOrder implements OnInit {
       invoiceNumber: value.invoiceNumber?.trim() ?? '',
       vendorId: Number(value.vendorId),
       vendorName: vendor?.name ?? '',
-      cashDiscount: Number(value.cashDiscount),
-      purchaseTotalAmount: this.orderTotal(),
-      items: value.items.map((item) => {
-        const qty = Number(item.qty);
-        const rate = Number(item.rate);
-        const base = qty * rate;
-        const gstPercent = Number(item.gst);
-        const totalAmount = base + base * (Number(item.gst) / 100);
+      cashDiscount: this.orderDiscount(),
+      purchaseTotalAmount: this.amountPayable(),
+      cgst: this.cgstTotal(),
+      sgst: this.sgstTotal(),
+      items: value.items.map((item, index) => {
+        const gstPercent = this.gstPercentFor(item.productId);
         return {
           productId: Number(item.productId),
-          qty,
+          qty: Number(item.qty),
           unit: item.unit?.trim() ?? '',
-          rate,
+          rate: Number(item.rate),
+          discount: Number(item.discount ?? 0),
           gstPercent,
-          totalAmount: Math.round(totalAmount * 100) / 100,
+          totalAmount: this.lineTax(index).taxable,
         };
       }),
     };

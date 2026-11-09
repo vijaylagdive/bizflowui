@@ -7,7 +7,38 @@
 
 .toolbar {
   display: flex;
-  justify-content: flex-end;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.filters,
+.pager {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 0.75rem;
+}
+
+.filters label {
+  width: 11rem;
+}
+
+.pager {
+  align-items: center;
+  color: #475569;
+}
+
+.pager p,
+.pager span {
+  margin: 0;
+}
+
+.filters input,
+.filters select,
+.pager select {
+  min-width: 9rem;
 }
 
 .card {

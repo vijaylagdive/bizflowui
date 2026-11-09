@@ -48,6 +48,12 @@ export const routes: Routes = [
           import('./pages/sales/sales-orders/sales-orders').then((m) => m.SalesOrders),
       },
       {
+        path: 'sales/orders/:id',
+        title: 'Sales order',
+        loadComponent: () =>
+          import('./pages/sales/sales-order-detail/sales-order-detail').then((m) => m.SalesOrderDetail),
+      },
+      {
         path: 'sales/orders/:id/edit',
         title: 'Edit Sales Order',
         loadComponent: () =>

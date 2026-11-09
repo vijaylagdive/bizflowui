@@ -92,11 +92,57 @@ select:focus {
   font-size: 0.95rem;
 }
 
+.totals {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.4rem;
+  margin-top: 1rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid #e2e8f0;
+}
+
+.totals__row {
+  display: grid;
+  grid-template-columns: 7.5rem 6.5rem;
+  gap: 1rem;
+  font-size: 0.9rem;
+  color: #475569;
+}
+
+.totals__row strong {
+  text-align: right;
+  color: #0f172a;
+  font-variant-numeric: tabular-nums;
+}
+
+.totals__row--total {
+  margin-top: 0.2rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid #e2e8f0;
+  color: #0f172a;
+  font-size: 1.05rem;
+  font-weight: 650;
+}
+
+.discount-field {
+  display: grid;
+  grid-template-columns: minmax(0, 16rem) auto;
+  gap: 1.5rem;
+  align-items: end;
+}
+
 .actions {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
+}
+
+.action-buttons {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 
 .grand-total {
@@ -106,6 +152,9 @@ select:focus {
 }
 
 .button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   height: 2.5rem;
   padding: 0 1rem;
   border: 0;
@@ -114,6 +163,7 @@ select:focus {
   color: #fff;
   font: inherit;
   font-weight: 650;
+  text-decoration: none;
   cursor: pointer;
 }
 
@@ -144,7 +194,8 @@ select:focus {
   }
 
   .fields,
-  .item {
+  .item,
+  .discount-field {
     grid-template-columns: 1fr 1fr;
   }
 

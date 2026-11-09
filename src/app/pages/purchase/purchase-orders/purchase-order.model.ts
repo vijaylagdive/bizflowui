@@ -3,6 +3,8 @@ export interface CreatePurchaseOrderItem {
   qty: number;
   unit: string;
   rate: number;
+  discount: number;
+  gstPercent: number;
   totalAmount: number;
 }
 
@@ -13,6 +15,8 @@ export interface CreatePurchaseOrderRequest {
   vendorName: string;
   cashDiscount: number;
   purchaseTotalAmount: number;
+  cgst: number;
+  sgst: number;
   items: CreatePurchaseOrderItem[];
 }
 
@@ -22,6 +26,7 @@ export interface PurchaseOrderItem {
   purchaseOrderId: number;
   qty: number;
   rate: number;
+  discount?: number;
   totalAmount: number;
   unit: string;
 }
@@ -34,6 +39,8 @@ export interface PurchaseOrder {
   purchaseDate: string;
   cashDiscount: number;
   purchaseTotalAmount: number;
+  cgst?: number;
+  sgst?: number;
   items: PurchaseOrderItem[];
   createdAt: string;
   updatedAt: string;

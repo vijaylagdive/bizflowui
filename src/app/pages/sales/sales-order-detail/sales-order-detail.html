@@ -1,0 +1,116 @@
+<section class="page">
+  <div class="toolbar">
+    <a class="back" routerLink="/sales/orders">Back to sales orders</a>
+    @if (order(); as order) {
+      <div class="actions">
+        <a class="button" [routerLink]="['/sales/orders', order.id, 'edit']">Edit</a>
+        @if (confirmDelete()) {
+          <span class="confirm">Delete {{ order.invoiceNumber }}?</span>
+          <button type="button" class="button button--danger" [disabled]="deleting()" (click)="deleteOrder()">
+            {{ deleting() ? 'Deleting…' : 'Delete' }}
+          </button>
+          <button type="button" class="button button--ghost" [disabled]="deleting()" (click)="cancelDelete()">
+            Cancel
+          </button>
+        } @else {
+          <button type="button" class="button button--ghost" (click)="askDelete()">Delete</button>
+        }
+        <button type="button" class="button button--ghost" (click)="print()">Print</button>
+      </div>
+    }
+  </div>
+
+  @if (loading()) {
+    <p class="status">Loading sales order…</p>
+  } @else if (order(); as order) {
+    <div class="bill">
+      <header class="bill__head">
+        <div>
+          <p class="bill__kicker">Sales invoice</p>
+          <h1>{{ order.invoiceNumber }}</h1>
+          <p class="bill__date">{{ order.salesDate | date: 'mediumDate' }}</p>
+        </div>
+        <div class="bill__customer">
+          <p class="label">Bill to</p>
+          <p class="bill__name">{{ customer()?.name ?? order.customerName }}</p>
+          @if (customer()?.address) {
+            <p>{{ customer()?.address }}</p>
+          }
+          @if (customer()?.contactNumber) {
+            <p>{{ customer()?.contactNumber }}</p>
+          }
+        </div>
+      </header>
+
+      @if (order.items.length === 0) {
+        <p class="status">No line items.</p>
+      } @else {
+        <div class="items-wrap">
+          <table class="items">
+            <thead>
+              <tr>
+                <th>Product</th>
+                <th>HSN / SAC</th>
+                <th class="num">Qty</th>
+                <th>Unit</th>
+                <th class="num">Rate</th>
+                <th class="num">Discount</th>
+                <th class="num">GST %</th>
+                <th class="num">Amount</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (item of order.items; track item.id) {
+                <tr>
+                  <td>{{ productName(item.productId) }}</td>
+                  <td>{{ productHsn(item.productId) }}</td>
+                  <td class="num">{{ item.qty | number: '1.0-3' }}</td>
+                  <td>{{ item.unit }}</td>
+                  <td class="num">{{ item.rate | number: '1.2-2' }}</td>
+                  <td class="num">{{ lineDiscount(item) | number: '1.2-2' }}</td>
+                  <td class="num">{{ item.gstPercent | number: '1.0-2' }}</td>
+                  <td class="num">{{ lineAmount(item) | number: '1.2-2' }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+
+      <div class="totals">
+        <div class="totals__row">
+          <span>Subtotal</span>
+          <strong>{{ subtotal() | number: '1.2-2' }}</strong>
+        </div>
+        <div class="totals__row">
+          <span>CGST</span>
+          <strong>{{ cgstTotal() | number: '1.2-2' }}</strong>
+        </div>
+        <div class="totals__row">
+          <span>SGST</span>
+          <strong>{{ sgstTotal() | number: '1.2-2' }}</strong>
+        </div>
+        <div class="totals__row">
+          <span>Round off</span>
+          <strong>{{ roundOff() | number: '1.2-2' }}</strong>
+        </div>
+        <div class="totals__row totals__row--total">
+          <span>Total</span>
+          <strong>{{ roundedTotal() | number: '1.2-2' }}</strong>
+        </div>
+        <div class="totals__row">
+          <span>Order discount</span>
+          <strong>{{ orderDiscount() | number: '1.2-2' }}</strong>
+        </div>
+        <div class="totals__row totals__row--total">
+          <span>Amount payable</span>
+          <strong>{{ order.salesTotalAmount | number: '1.2-2' }}</strong>
+        </div>
+      </div>
+    </div>
+  }
+
+  @if (error()) {
+    <p class="status status--error">{{ error() }}</p>
+  }
+</section>

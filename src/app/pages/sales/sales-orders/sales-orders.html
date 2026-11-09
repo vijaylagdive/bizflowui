@@ -1,4 +1,16 @@
 <section class="page">
+  <form class="filters" [formGroup]="filters" (ngSubmit)="applyFilters()">
+    <label>
+      From
+      <input type="date" formControlName="fromDate" />
+    </label>
+    <label>
+      To
+      <input type="date" formControlName="toDate" />
+    </label>
+    <button type="submit" class="button" [disabled]="loading()">Apply</button>
+  </form>
+
   @if (error()) {
     <p class="status status--error">{{ error() }}</p>
   }
@@ -6,7 +18,7 @@
   @if (loading()) {
     <p class="status">Loading sales orders…</p>
   } @else if (orders().length === 0) {
-    <p class="status">No sales orders yet.</p>
+    <p class="status">No sales orders for these dates.</p>
   } @else {
     <ul class="orders">
       @for (order of orders(); track order.id) {
@@ -24,17 +36,7 @@
             <span class="total">{{ order.salesTotalAmount | number: '1.2-2' }}</span>
           </button>
           <div class="row-actions">
-            <a class="button button--ghost" [routerLink]="['/sales/orders', order.id, 'edit']">Edit</a>
-            @if (pendingDeleteId() === order.id) {
-              <button type="button" class="button button--danger" [disabled]="deletingId() === order.id" (click)="deleteOrder(order)">
-                {{ deletingId() === order.id ? 'Deleting…' : 'Confirm' }}
-              </button>
-              <button type="button" class="button button--ghost" [disabled]="deletingId() === order.id" (click)="cancelDelete()">
-                Cancel
-              </button>
-            } @else {
-              <button type="button" class="button button--ghost" (click)="confirmDelete(order.id)">Delete</button>
-            }
+            <a class="button" [routerLink]="['/sales/orders', order.id]">Show Details</a>
           </div>
           </div>
 
@@ -72,6 +74,26 @@
           }
         </li>
       }
-    </ul>
+      </ul>
+  }
+
+  @if (!loading()) {
+    <div class="pager">
+      <p>{{ resultSummary() }}</p>
+      <label>
+        <select [value]="pageSize()" (change)="changePageSize($any($event.target).value)">
+          <option value="10">10</option>
+          <option value="20">20</option>
+          <option value="50">50</option>
+        </select>
+      </label>
+      <button type="button" class="button button--ghost" (click)="previousPage()" [disabled]="page() === 0">
+        Previous
+      </button>
+      <span>Page {{ totalPages() === 0 ? 1 : page() + 1 }} of {{ totalPages() === 0 ? 1 : totalPages() }}</span>
+      <button type="button" class="button button--ghost" (click)="nextPage()" [disabled]="page() + 1 >= totalPages()">
+        Next
+      </button>
+    </div>
   }
 </section>

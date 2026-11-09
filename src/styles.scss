@@ -24,3 +24,33 @@ app-root {
 .page {
   min-height: 100%;
 }
+
+@media print {
+  body.printing-bill {
+    background: #fff;
+  }
+
+  body.printing-bill .sidebar,
+  body.printing-bill .topbar,
+  body.printing-bill .backdrop,
+  body.printing-bill app-sales-order-detail .toolbar {
+    display: none !important;
+  }
+
+  body.printing-bill .shell,
+  body.printing-bill .workspace,
+  body.printing-bill .content {
+    display: block;
+    width: auto;
+    min-height: 0;
+    background: #fff;
+  }
+
+  body.printing-bill .content {
+    padding: 0;
+  }
+
+  @page {
+    margin: 12mm;
+  }
+}

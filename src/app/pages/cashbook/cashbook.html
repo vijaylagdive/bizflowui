@@ -1,5 +1,28 @@
 <section class="page">
   <div class="toolbar">
+    <form class="filters" [formGroup]="filters" (ngSubmit)="applyFilters()">
+      <label>
+        From
+        <input type="date" formControlName="fromDate" />
+      </label>
+      <label>
+        To
+        <input type="date" formControlName="toDate" />
+      </label>
+      <label>
+        Type
+        <select formControlName="transactionType">
+          <option value="">All</option>
+          <option value="Receipt">Receipt</option>
+          <option value="Payment">Payment</option>
+        </select>
+      </label>
+      <label>
+        From / to
+        <input type="text" formControlName="fromTo" autocomplete="off" />
+      </label>
+      <button type="submit" class="button" [disabled]="loading()">Apply</button>
+    </form>
     <button type="button" class="button" (click)="openForm()" [disabled]="showForm()">Add transaction</button>
   </div>
 
@@ -69,7 +92,7 @@
   @if (loading()) {
     <p class="status">Loading transactions…</p>
   } @else if (entries().length === 0) {
-    <p class="status">No transactions yet.</p>
+    <p class="status">No transactions for this filter.</p>
   } @else {
     <div class="table-wrap">
       <table>
@@ -115,6 +138,26 @@
           }
         </tbody>
       </table>
+    </div>
+  }
+
+  @if (!loading()) {
+    <div class="pager">
+      <p>{{ resultSummary() }}</p>
+      <label>
+        <select [value]="pageSize()" (change)="changePageSize($any($event.target).value)">
+          <option value="10">10</option>
+          <option value="20">20</option>
+          <option value="50">50</option>
+        </select>
+      </label>
+      <button type="button" class="button button--ghost" (click)="previousPage()" [disabled]="page() === 0">
+        Previous
+      </button>
+      <span>Page {{ totalPages() === 0 ? 1 : page() + 1 }} of {{ totalPages() === 0 ? 1 : totalPages() }}</span>
+      <button type="button" class="button button--ghost" (click)="nextPage()" [disabled]="page() + 1 >= totalPages()">
+        Next
+      </button>
     </div>
   }
 </section>

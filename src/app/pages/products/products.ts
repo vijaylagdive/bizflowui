@@ -29,7 +29,9 @@ export class Products implements OnInit {
 
   protected readonly form = this.formBuilder.group({
     productName: ['', Validators.required],
+    hsnSacCode: ['', Validators.required],
     categoryId: [null as number | null, Validators.required],
+    gstPercentage: [0, Validators.required],
   });
 
   ngOnInit(): void {
@@ -59,6 +61,8 @@ export class Products implements OnInit {
     this.form.setValue({
       productName: product.productName,
       categoryId: product.categoryId,
+      hsnSacCode: product.hsnSacCode,
+      gstPercentage: product.gstPercent ?? 0,
     });
     this.error.set(null);
     this.showForm.set(true);
@@ -107,6 +111,8 @@ export class Products implements OnInit {
     const product = {
       productName: value.productName?.trim() ?? '',
       categoryId: Number(value.categoryId),
+      hsnSacCode: value.hsnSacCode?.trim() ?? '',
+      gstPercent: Number(value.gstPercentage)
     };
     const editingId = this.editingId();
     const request =

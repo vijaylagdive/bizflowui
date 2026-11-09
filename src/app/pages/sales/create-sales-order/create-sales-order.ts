@@ -2,7 +2,7 @@ import { DecimalPipe } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, inject, OnInit, signal } from '@angular/core';
 import { AbstractControl, FormArray, FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { Customer } from '../../customers/customer.model';
 import { CustomerService } from '../../customers/customer.service';
 import { InventoryService } from '../../inventory/inventory.service';
@@ -16,7 +16,7 @@ import { SalesOrderService } from '../sales-orders/sales-order.service';
 
 @Component({
   selector: 'app-create-sales-order',
-  imports: [ReactiveFormsModule, DecimalPipe],
+  imports: [ReactiveFormsModule, DecimalPipe, RouterLink],
   templateUrl: './create-sales-order.html',
   styleUrl: './create-sales-order.scss',
 })
@@ -48,7 +48,7 @@ export class CreateSalesOrder implements OnInit {
     salesDate: [this.today(), Validators.required],
     invoiceNumber: ['', Validators.required],
     customerId: [null as number | null, Validators.required],
-    cashDiscount: [0, [Validators.required, Validators.min(0)]],
+    orderDiscount: [0, [Validators.required, Validators.min(0)]],
     items: this.formBuilder.array([this.createItem()]),
   });
 
@@ -134,14 +134,37 @@ export class CreateSalesOrder implements OnInit {
   }
 
   protected lineAmount(index: number): number {
-    const item = this.items.at(index).getRawValue();
-    const base = Number(item.qty ?? 0) * Number(item.rate ?? 0);
-    return base + base * (Number(item.gst ?? 0) / 100);
+    return this.lineTax(index).taxable;
   }
 
-  protected orderTotal(): number {
-    let x =       this.items.controls.reduce((sum, _, index) => sum + this.lineAmount(index), 0);
-    return x - Number(this.form.get('cashDiscount')?.value ?? 0);
+  protected subtotal(): number {
+    return this.roundMoney(
+      this.items.controls.reduce((sum, _, index) => sum + this.lineTax(index).taxable, 0),
+    );
+  }
+
+  protected cgstTotal(): number {
+    return this.roundMoney(
+      this.items.controls.reduce((sum, _, index) => sum + this.lineTax(index).cgst, 0),
+    );
+  }
+
+  protected sgstTotal(): number {
+    return this.roundMoney(
+      this.items.controls.reduce((sum, _, index) => sum + this.lineTax(index).sgst, 0),
+    );
+  }
+
+  protected roundOff(): number {
+    return this.roundMoney(this.roundedTotal() - this.grossBeforeRound());
+  }
+
+  protected roundedTotal(): number {
+    return Math.round(this.grossBeforeRound());
+  }
+
+  protected amountPayable(): number {
+    return this.roundMoney(this.roundedTotal() - this.orderDiscount());
   }
 
   protected itemProductId(item: AbstractControl): number | null {
@@ -217,7 +240,7 @@ export class CreateSalesOrder implements OnInit {
       salesDate: order.salesDate,
       invoiceNumber: order.invoiceNumber,
       customerId: order.customerId,
-      cashDiscount: order.cashDiscount,
+      orderDiscount: order.cashDiscount ?? 0,
     });
     this.items.clear();
     for (const item of order.items) {
@@ -227,7 +250,7 @@ export class CreateSalesOrder implements OnInit {
         qty: item.qty,
         unit: item.unit,
         rate: item.rate,
-        gst: item.gstPercent,
+        discount: item.discount ?? 0,
       });
       this.items.push(group);
     }
@@ -307,8 +330,38 @@ export class CreateSalesOrder implements OnInit {
       qty: [null as number | null, [Validators.required, Validators.min(0.001)]],
       unit: [null as string | null, Validators.required],
       rate: [null as number | null, [Validators.required, Validators.min(0)]],
-      gst: [null as number | null, [Validators.required, Validators.min(0)]],
+      discount: [0, [Validators.required, Validators.min(0)]],
     });
+  }
+
+  private lineTax(index: number): { taxable: number; cgst: number; sgst: number } {
+    const item = this.items.at(index).getRawValue();
+    const taxable = this.roundMoney(
+      (Number(item.rate ?? 0) - Number(item.discount ?? 0)) * Number(item.qty ?? 0),
+    );
+    const gst = this.roundMoney((taxable * this.gstPercentFor(item.productId)) / 100);
+    const cgst = this.roundMoney(gst / 2);
+    return { taxable, cgst, sgst: this.roundMoney(gst - cgst) };
+  }
+
+  private gstPercentFor(productId: number | null): number {
+    if (productId === null) {
+      return 0;
+    }
+    const product = this.products().find((entry) => entry.productId === Number(productId));
+    return Number(product?.gstPercent ?? 0);
+  }
+
+  private grossBeforeRound(): number {
+    return this.roundMoney(this.subtotal() + this.cgstTotal() + this.sgstTotal());
+  }
+
+  private orderDiscount(): number {
+    return Number(this.form.get('orderDiscount')?.value ?? 0);
+  }
+
+  private roundMoney(value: number): number {
+    return Math.round((value + Number.EPSILON) * 100) / 100;
   }
 
   private requestBody(): CreateSalesOrderRequest {
@@ -319,14 +372,16 @@ export class CreateSalesOrder implements OnInit {
       invoiceNumber: value.invoiceNumber?.trim() ?? '',
       customerId: Number(value.customerId),
       customerName: customer?.name ?? '',
-      cashDiscount: Number(value.cashDiscount),
-      salesTotalAmount: this.orderTotal(),
-      items: value.items.map((item) => ({
+      cashDiscount: this.orderDiscount(),
+      salesTotalAmount: this.amountPayable(),
+      items: value.items.map((item, index) => ({
         productId: Number(item.productId),
         qty: Number(item.qty),
         unit: item.unit?.trim() ?? '',
         rate: Number(item.rate),
-        gstPercent: Number(item.gst),
+        discount: Number(item.discount ?? 0),
+        gstPercent: this.gstPercentFor(item.productId),
+        totalAmount: this.lineTax(index).taxable,
       })),
     };
   }

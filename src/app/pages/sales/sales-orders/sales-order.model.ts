@@ -3,7 +3,9 @@ export interface CreateSalesOrderItem {
   qty: number;
   unit: string;
   rate: number;
+  discount: number;
   gstPercent: number;
+  totalAmount: number;
 }
 
 export interface CreateSalesOrderRequest {
@@ -23,6 +25,7 @@ export interface SalesOrderItem {
   qty: number;
   unit: string;
   rate: number;
+  discount?: number;
   gstPercent: number;
   totalAmount: number;
 }

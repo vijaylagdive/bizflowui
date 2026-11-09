@@ -24,10 +24,6 @@
             }
           </select>
         </label>
-        <label>
-          Cash discount
-          <input type="number" formControlName="cashDiscount" min="0" step="0.01" />
-        </label>
       </div>
       @if (form.touched && form.invalid && items.valid) {
         <p class="hint">Enter the sales date, invoice number, and customer.</p>
@@ -81,8 +77,8 @@
             <input type="number" formControlName="rate" min="0" step="0.01" />
           </label>
           <label>
-            GST %
-            <input type="number" formControlName="gst" min="0" step="0.01" />
+            Discount
+            <input type="number" formControlName="discount" min="0" step="0.01" />
           </label>
           <div class="amount">
             <span>Amount</span>
@@ -101,13 +97,57 @@
           }
         </div>
       }
+
+      <div class="totals">
+        <div class="totals__row">
+          <span>Subtotal</span>
+          <strong>{{ subtotal() | number: '1.2-2' }}</strong>
+        </div>
+        <div class="totals__row">
+          <span>CGST</span>
+          <strong>{{ cgstTotal() | number: '1.2-2' }}</strong>
+        </div>
+        <div class="totals__row">
+          <span>SGST</span>
+          <strong>{{ sgstTotal() | number: '1.2-2' }}</strong>
+        </div>
+        <div class="totals__row">
+          <span>Round off</span>
+          <strong>{{ roundOff() | number: '1.2-2' }}</strong>
+        </div>
+        <div class="totals__row totals__row--total">
+          <span>Total</span>
+          <strong>{{ roundedTotal() | number: '1.2-2' }}</strong>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card__head">
+        <h2>Order discount</h2>
+      </div>
+      <div class="discount-field">
+        <label>
+          Discount
+          <input type="number" formControlName="orderDiscount" min="0" step="0.01" />
+        </label>
+        <div class="amount">
+          <span>Amount payable</span>
+          <strong>{{ amountPayable() | number: '1.2-2' }}</strong>
+        </div>
+      </div>
     </div>
 
     <div class="actions">
-      <p class="grand-total">Total {{ orderTotal() | number: '1.2-2' }}</p>
-      <button type="submit" class="button" [disabled]="saving()">
-        {{ saving() ? 'Saving…' : editingId() === null ? 'Create sales order' : 'Save changes' }}
-      </button>
+      <p class="grand-total">Payable {{ amountPayable() | number: '1.2-2' }}</p>
+      <div class="action-buttons">
+        @if (editingId() !== null) {
+          <a class="button button--ghost" [routerLink]="['/sales/orders', editingId()]">Cancel</a>
+        }
+        <button type="submit" class="button" [disabled]="saving()">
+          {{ saving() ? 'Saving…' : editingId() === null ? 'Create sales order' : 'Save changes' }}
+        </button>
+      </div>
     </div>
 
     @if (error()) {

@@ -9,6 +9,7 @@ import { Customer } from '../customers/customer.model';
 import { CustomerService } from '../customers/customer.service';
 import { Vendor } from '../vendors/vendor.model';
 import { VendorService } from '../vendors/vendor.service';
+import { PageResult, monthToDate } from '../../shared/list-page';
 import { CashbookEntry } from './cashbook.model';
 import { CashbookService } from './cashbook.service';
 
@@ -31,6 +32,8 @@ export class Cashbook implements OnInit {
   private readonly customersApi = inject(CustomerService);
   private readonly vendorsApi = inject(VendorService);
 
+  private readonly range = monthToDate();
+
   protected readonly entries = signal<CashbookEntry[]>([]);
   protected readonly accounts = signal<Account[]>([]);
   protected readonly customers = signal<Customer[]>([]);
@@ -42,7 +45,18 @@ export class Cashbook implements OnInit {
   protected readonly editingId = signal<number | null>(null);
   protected readonly pendingDeleteId = signal<number | null>(null);
   protected readonly error = signal<string | null>(null);
+  protected readonly page = signal(0);
+  protected readonly pageSize = signal(20);
+  protected readonly totalElements = signal(0);
+  protected readonly totalPages = signal(0);
   private suppressPartyReset = false;
+
+  protected readonly filters = this.formBuilder.group({
+    fromDate: [this.range.fromDate],
+    toDate: [this.range.toDate],
+    transactionType: [''],
+    fromTo: [''],
+  });
 
   protected readonly form = this.formBuilder.group({
     date: [this.today(), Validators.required],
@@ -204,6 +218,9 @@ export class Cashbook implements OnInit {
       next: () => {
         this.cancel();
         this.saving.set(false);
+        if (editingId === null) {
+          this.page.set(0);
+        }
         this.loadEntries();
       },
       error: (error: HttpErrorResponse) => {
@@ -218,18 +235,83 @@ export class Cashbook implements OnInit {
     });
   }
 
-  private loadEntries(): void {
+  protected applyFilters(): void {
+    this.page.set(0);
+    this.loadEntries();
+  }
+
+  protected previousPage(): void {
+    if (this.page() === 0) {
+      return;
+    }
+    this.page.update((current) => current - 1);
+    this.loadEntries();
+  }
+
+  protected nextPage(): void {
+    if (this.page() + 1 >= this.totalPages()) {
+      return;
+    }
+    this.page.update((current) => current + 1);
+    this.loadEntries();
+  }
+
+  protected changePageSize(value: string): void {
+    const size = Number(value);
+    if (!Number.isFinite(size) || size <= 0) {
+      return;
+    }
+    this.pageSize.set(size);
+    this.page.set(0);
+    this.loadEntries();
+  }
+
+  protected resultSummary(): string {
+    const total = this.totalElements();
+    if (total === 0) {
+      return '0 results';
+    }
+    const start = this.page() * this.pageSize() + 1;
+    const end = Math.min(total, (this.page() + 1) * this.pageSize());
+    return `${start}–${end} of ${total}`;
+  }
+
+  private loadEntries(allowStepBack = true): void {
+    const filters = this.filters.getRawValue();
     this.loading.set(true);
-    this.cashbooksApi.getCashbooks().subscribe({
-      next: (entries) => {
-        this.entries.set(entries);
-        this.loading.set(false);
-      },
-      error: () => {
-        this.error.set('Could not load cashbook transactions.');
-        this.loading.set(false);
-      },
-    });
+    this.cashbooksApi
+      .getCashbooks({
+        page: this.page(),
+        size: this.pageSize(),
+        fromDate: filters.fromDate,
+        toDate: filters.toDate,
+        transactionType: filters.transactionType,
+        fromTo: filters.fromTo,
+      })
+      .subscribe({
+        next: (page) => {
+          if (allowStepBack && page.content.length === 0 && this.page() > 0) {
+            this.page.update((current) => current - 1);
+            this.loadEntries(false);
+            return;
+          }
+          this.applyPage(page);
+        },
+        error: () => {
+          this.error.set('Could not load cashbook transactions.');
+          this.loading.set(false);
+        },
+      });
+  }
+
+  private applyPage(page: PageResult<CashbookEntry>): void {
+    this.entries.set(page.content);
+    this.totalElements.set(page.totalElements);
+    this.totalPages.set(page.totalPages);
+    if (page.number !== null) {
+      this.page.set(page.number);
+    }
+    this.loading.set(false);
   }
 
   private today(): string {

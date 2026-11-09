@@ -1,14 +1,17 @@
 import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
-import { Observable } from 'rxjs';
+import { map, Observable } from 'rxjs';
+import { ListQuery, PageResult, listParams, readPage } from '../../../shared/list-page';
 import { CreatePurchaseOrderRequest, PurchaseOrder } from './purchase-order.model';
 
 @Injectable({ providedIn: 'root' })
 export class PurchaseOrderService {
   private readonly http = inject(HttpClient);
 
-  getPurchaseOrders(): Observable<PurchaseOrder[]> {
-    return this.http.get<PurchaseOrder[]>('/purchase-orders');
+  getPurchaseOrders(query: ListQuery): Observable<PageResult<PurchaseOrder>> {
+    return this.http
+      .get<unknown>('/purchase-orders', { params: listParams(query) })
+      .pipe(map((body) => readPage<PurchaseOrder>(body)));
   }
 
   getPurchaseOrder(id: number): Observable<PurchaseOrder> {

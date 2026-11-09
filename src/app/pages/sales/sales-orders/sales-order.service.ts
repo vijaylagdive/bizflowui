@@ -1,14 +1,17 @@
 import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
-import { Observable } from 'rxjs';
+import { map, Observable } from 'rxjs';
+import { ListQuery, PageResult, listParams, readPage } from '../../../shared/list-page';
 import { CreateSalesOrderRequest, SalesOrder } from './sales-order.model';
 
 @Injectable({ providedIn: 'root' })
 export class SalesOrderService {
   private readonly http = inject(HttpClient);
 
-  getSalesOrders(): Observable<SalesOrder[]> {
-    return this.http.get<SalesOrder[]>('/api/sales-orders');
+  getSalesOrders(query: ListQuery): Observable<PageResult<SalesOrder>> {
+    return this.http
+      .get<unknown>('/api/sales-orders', { params: listParams(query) })
+      .pipe(map((body) => readPage<SalesOrder>(body)));
   }
 
   getSalesOrder(id: number): Observable<SalesOrder> {

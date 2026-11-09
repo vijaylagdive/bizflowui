@@ -2,8 +2,8 @@ import { DecimalPipe } from '@angular/common';
 import { Component, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, RouterLink } from '@angular/router';
-import { CustomerService } from '../../customers/customer.service';
-import { VendorService } from '../../vendors/vendor.service';
+import { VendorLedgerService } from '../vendor-ledger/vendor-ledger.service';
+import { CustomerLedgerService } from '../customer-ledger/customer-ledger.service';
 
 interface PartyRow {
   id: number;
@@ -19,8 +19,8 @@ interface PartyRow {
 })
 export class LedgerParties {
   private readonly route = inject(ActivatedRoute);
-  private readonly vendorsApi = inject(VendorService);
-  private readonly customersApi = inject(CustomerService);
+  private readonly vendorsApi = inject(VendorLedgerService);
+  private readonly customersApi = inject(CustomerLedgerService);
 
   protected readonly party = signal<'vendor' | 'customer'>('vendor');
   protected readonly parties = signal<PartyRow[]>([]);
@@ -41,7 +41,7 @@ export class LedgerParties {
     this.loading.set(true);
     this.error.set(null);
     if (party === 'vendor') {
-      this.vendorsApi.getVendors().subscribe({
+      this.vendorsApi.getVendorLedgers().subscribe({
         next: (vendors) => {
           if (loadId !== this.loadId) {
             return;
@@ -49,8 +49,8 @@ export class LedgerParties {
           this.parties.set(
             vendors.map((vendor) => ({
               id: vendor.vendorId,
-              name: vendor.name,
-              currentBalance: vendor.currentBalance,
+              name: vendor.vendorName,
+              currentBalance: vendor.balance,
             })),
           );
           this.loading.set(false);
@@ -66,7 +66,7 @@ export class LedgerParties {
       return;
     }
 
-    this.customersApi.getCustomers().subscribe({
+    this.customersApi.getCustomerLedgers().subscribe({
       next: (customers) => {
         if (loadId !== this.loadId) {
           return;
@@ -74,8 +74,8 @@ export class LedgerParties {
         this.parties.set(
           customers.map((customer) => ({
             id: customer.customerId,
-            name: customer.name,
-            currentBalance: customer.currentBalance,
+            name: customer.customerName,
+            currentBalance: customer.balance,
           })),
         );
         this.loading.set(false);

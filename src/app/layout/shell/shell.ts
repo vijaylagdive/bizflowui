@@ -154,6 +154,9 @@ export class Shell {
     if (/^\/sales\/orders\/\d+\/edit$/.test(path)) {
       return 'Edit Sales Order';
     }
+    if (/^\/sales\/orders\/\d+$/.test(path)) {
+      return 'Sales order';
+    }
     if (/^\/ledgers\/vendors\/\d+$/.test(path)) {
       return 'Vendor Ledger';
     }

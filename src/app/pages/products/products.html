@@ -11,6 +11,10 @@
           <input type="text" formControlName="productName" autocomplete="off" />
         </label>
         <label>
+          Hsn Sac code
+          <input type="text" formControlName="hsnSacCode" autocomplete="off" />
+        </label>
+        <label>
           Category
           <select formControlName="categoryId">
             <option [ngValue]="null">
@@ -20,6 +24,10 @@
               <option [ngValue]="category.categoryId">{{ category.categoryName }}</option>
             }
           </select>
+        </label>
+        <label>
+          GST %
+          <input type="number" formControlName="gstPercentage" autocomplete="off" />
         </label>
       </div>
       @if (form.touched && form.invalid) {
@@ -52,7 +60,18 @@
             <p class="product__name">{{ product.productName }}</p>
             <p class="product__meta">ID {{ product.productId }}</p>
           </div>
-          <p>{{ product.categoryName }}</p>
+          <p class="product__detail">
+            <span class="product__label">HSN / SAC</span>
+            {{ product.hsnSacCode }}
+          </p>
+          <p class="product__detail">
+            <span class="product__label">Category</span>
+            {{ product.categoryName }}
+          </p>
+          <p class="product__detail">
+            <span class="product__label">GST %</span>
+            {{ product.gstPercent }}
+          </p>
           <div class="row-actions">
             @if (pendingDeleteId() === product.productId) {
               <span class="confirm">Delete {{ product.productName }}?</span>

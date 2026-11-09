@@ -1,14 +1,17 @@
 import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
-import { Observable } from 'rxjs';
+import { map, Observable } from 'rxjs';
+import { ListQuery, PageResult, listParams, readPage } from '../../shared/list-page';
 import { CashbookEntry, CreateCashbookRequest } from './cashbook.model';
 
 @Injectable({ providedIn: 'root' })
 export class CashbookService {
   private readonly http = inject(HttpClient);
 
-  getCashbooks(): Observable<CashbookEntry[]> {
-    return this.http.get<CashbookEntry[]>('/api/cashbooks');
+  getCashbooks(query: ListQuery): Observable<PageResult<CashbookEntry>> {
+    return this.http
+      .get<unknown>('/api/cashbooks', { params: listParams(query) })
+      .pipe(map((body) => readPage<CashbookEntry>(body)));
   }
 
   createCashbook(entry: CreateCashbookRequest): Observable<CashbookEntry> {
