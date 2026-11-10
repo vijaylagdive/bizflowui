@@ -10,4 +10,10 @@ export class CustomerLedgerService {
   getCustomerLedgers(): Observable<CustomerLedgerEntry[]> {
     return this.http.get<CustomerLedgerEntry[]>('/api/customer-ledgers');
   }
+
+  getCustomerLedger(customerId: number): Observable<CustomerLedgerEntry[]> {
+    return this.http.get<CustomerLedgerEntry[]>('/api/customer-ledgers', {
+      params: { customerId },
+    });
+  }
 }

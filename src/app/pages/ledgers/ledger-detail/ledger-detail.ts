@@ -64,44 +64,46 @@ export class LedgerDetail {
           if (party === 'vendor') {
             return forkJoin({
               vendors: this.vendorsApi.getVendors(),
-              entries: this.vendorLedgersApi.getVendorLedgers(),
+              entries: this.vendorLedgersApi.getVendorLedger(partyId),
             }).pipe(
               map(({ vendors, entries }) => ({
                 invalid: false,
-                name: vendors.find((vendor) => vendor.vendorId === partyId)?.name ?? 'Vendor',
-                lines: entries
-                  .filter((entry) => entry.vendorId === partyId)
-                  .map((entry) => ({
-                    id: entry.id,
-                    date: entry.date,
-                    type: entry.type,
-                    reference: entry.purchaseOrderId == null ? '' : String(entry.purchaseOrderId),
-                    debit: entry.debit,
-                    credit: entry.credit,
-                    balance: entry.balance,
-                  })),
+                name:
+                  vendors.find((vendor) => vendor.vendorId === partyId)?.name ??
+                  entries[0]?.vendorName ??
+                  'Vendor',
+                lines: entries.map((entry) => ({
+                  id: entry.id,
+                  date: entry.date,
+                  type: entry.type,
+                  reference: entry.purchaseOrderId == null ? '' : String(entry.purchaseOrderId),
+                  debit: entry.debit,
+                  credit: entry.credit,
+                  balance: entry.balance,
+                })),
               })),
             );
           }
 
           return forkJoin({
             customers: this.customersApi.getCustomers(),
-            entries: this.customerLedgersApi.getCustomerLedgers(),
+            entries: this.customerLedgersApi.getCustomerLedger(partyId),
           }).pipe(
             map(({ customers, entries }) => ({
               invalid: false,
-              name: customers.find((customer) => customer.customerId === partyId)?.name ?? 'Customer',
-              lines: entries
-                .filter((entry) => entry.customerId === partyId)
-                .map((entry) => ({
-                  id: entry.id,
-                  date: entry.date,
-                  type: entry.type,
-                  reference: entry.saleOrderNo,
-                  debit: entry.debit,
-                  credit: entry.credit,
-                  balance: entry.balance,
-                })),
+              name:
+                customers.find((customer) => customer.customerId === partyId)?.name ??
+                entries[0]?.customerName ??
+                'Customer',
+              lines: entries.map((entry) => ({
+                id: entry.id,
+                date: entry.date,
+                type: entry.type,
+                reference: entry.saleOrderNo,
+                debit: entry.debit,
+                credit: entry.credit,
+                balance: entry.balance,
+              })),
             })),
           );
         }),

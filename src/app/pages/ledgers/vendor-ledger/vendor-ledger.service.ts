@@ -10,4 +10,10 @@ export class VendorLedgerService {
   getVendorLedgers(): Observable<VendorLedgerEntry[]> {
     return this.http.get<VendorLedgerEntry[]>('/api/vendor-ledgers');
   }
+
+  getVendorLedger(vendorId: number): Observable<VendorLedgerEntry[]> {
+    return this.http.get<VendorLedgerEntry[]>('/api/vendor-ledgers', {
+      params: { vendorId },
+    });
+  }
 }
